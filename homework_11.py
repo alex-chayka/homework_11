@@ -1,6 +1,5 @@
 from bot_classes import AddressBook, Record, Name, Phone
 
-# users_dict = {}
 contacts_book = AddressBook()
 
 
@@ -34,10 +33,9 @@ def exit(_):
 
 
 @input_error
-def change_phone(*args):
-    name = args[0][2]
-    phone_old = Phone(args[0][3])
-    phone_new = Phone(args[0][4])
+def change_phone(name, phone_old_input, phone_new_input):
+    phone_old = Phone(phone_old_input)
+    phone_new = Phone(phone_new_input)
 
     if not contacts_book.has_name(name):
         raise KeyError
@@ -48,9 +46,9 @@ def change_phone(*args):
 
 
 @input_error
-def delete_phone(*args):
-    name = args[0][2]
-    phone = Phone(args[0][3])
+def delete_phone(name, phone_input):
+    # name = args[0][2]
+    phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
         raise KeyError
@@ -61,9 +59,9 @@ def delete_phone(*args):
 
 
 @input_error
-def add_phone(*args):
-    name = args[0][2]
-    phone = Phone(args[0][3])
+def add_phone(name, phone_input):
+    # name = args[0][2]
+    phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
         raise KeyError
@@ -74,8 +72,8 @@ def add_phone(*args):
 
 
 @input_error
-def show_phones(*args):
-    name = args[0][2]
+def show_phones(name):
+    # name = args[0][2]
 
     if not contacts_book.has_name(name):
         raise KeyError
@@ -98,9 +96,9 @@ def show_all(_):
 
 
 @input_error
-def add_user(*args):
-    name = Name(args[0][2])
-    phone = Phone(args[0][3])
+def add_user(name_input, phone_input):
+    name = Name(name_input)
+    phone = Phone(phone_input)
 
     record = Record(name, phone)
 
@@ -133,8 +131,8 @@ COMMANDS = {
 def command_handler(text):
     for keyword, command in COMMANDS.items():
         if text.lower().startswith(keyword):
-            # return command, text.replace(keyword, "").strip().split()
-            return command, text.split(" ")
+            return command, text.replace(keyword, "").strip()
+            # return command, text.split(" ")
     return no_command, None
 
 
@@ -143,8 +141,14 @@ def main():
     while True:
         user_input = input(">>>")
         command, data = command_handler(user_input)
-        print(command(data))
+
+        if data:
+            data = data[0].split(", ")
+
+        print(command(*data))
+
         if command == exit:
+            print("Exit")
             break
 
 
