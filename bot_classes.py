@@ -20,8 +20,8 @@ class Record:
         self.birthday = birthday
 
     def __repr__(self) -> str:
-        return "Name: {}. Phones: {}. Birthday: {}".format(
-            self.name, self.show_phones(), self.birthday
+        return (
+            "Name: {self.name}. Phones: {self.show_phones()}. Birthday: {self.birthday}"
         )
 
     def add_phone(self, phone):

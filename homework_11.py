@@ -25,11 +25,11 @@ def input_error(func):
     return inner
 
 
-def hello(*args):
+def hello(_):
     return "How can I help you?"
 
 
-def exit(*args):
+def exit(_):
     return "Good bye!"
 
 
@@ -86,7 +86,7 @@ def show_phones(*args):
 
 
 @input_error
-def show_all(*args):
+def show_all(_):
     if len(contacts_book) == 0:
         raise ValueError("Phone book is empty.")
 
@@ -112,7 +112,7 @@ def add_user(*args):
     return f"Added user {name.value} with phone number {phone.phone_number}."
 
 
-def no_command(*args):
+def no_command(_):
     return "Unknown command, try again."
 
 
