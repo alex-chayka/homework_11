@@ -14,9 +14,11 @@ def input_error(func):
         except KeyError:
             return 'No such user in Contacts. Use "add" command to add one.'
 
-        except TypeError as e:
+        # except TypeError: as e:
+        except TypeError:
+            return "Not enough params. Try again."
             # return "Phone number should contain only numbers."
-            return e
+            # return e
 
         except ValueError as e:
             return e
@@ -24,11 +26,11 @@ def input_error(func):
     return inner
 
 
-def hello(_):
+def hello():
     return "How can I help you?"
 
 
-def exit(_):
+def exit():
     return "Good bye!"
 
 
@@ -84,7 +86,7 @@ def show_phones(name):
 
 
 @input_error
-def show_all(_):
+def show_all():
     if len(contacts_book) == 0:
         raise ValueError("Phone book is empty.")
 
@@ -110,7 +112,7 @@ def add_user(name_input, phone_input):
     return f"Added user {name.value} with phone number {phone.phone_number}."
 
 
-def no_command(_):
+def no_command():
     return "Unknown command, try again."
 
 
@@ -143,12 +145,14 @@ def main():
         command, data = command_handler(user_input)
 
         if data:
-            data = data[0].split(", ")
+            data = data.split(", ")
 
-        print(command(*data))
+        if command != no_command:
+            print(command(*data))
+        else:
+            print(no_command())
 
         if command == exit:
-            print("Exit")
             break
 
 
