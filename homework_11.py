@@ -1,6 +1,13 @@
-from bot_classes import AddressBook, Record, Name, Phone
+from bot_classes import AddressBook, Record, Name, Phone, Birthday
+from pathlib import Path
 
-contacts_book = AddressBook()
+
+file = Path("contacts.bin")
+
+if file.exists():
+    contacts_book = AddressBook.load_from_file(file)
+else:
+    contacts_book = AddressBook()
 
 
 def input_error(func):
@@ -31,6 +38,7 @@ def hello():
 
 
 def exit():
+    contacts_book.save_to_file(file)
     return "Good bye!"
 
 
@@ -86,23 +94,52 @@ def show_phones(name):
 
 
 @input_error
-def show_all():
-    if len(contacts_book) == 0:
-        raise ValueError("Phone book is empty.")
-
-    all_users = ""
-    for v in contacts_book.values():
-        all_users += f"{v}\n"
-
-    return all_users
+def search(search_str):
+    results = contacts_book.search(search_str)
+    if len(results) > 0:
+        return f"Results: {results}\n"
+    else:
+        raise ValueError("Nothing found.")
 
 
 @input_error
-def add_user(name_input, phone_input):
+def days_to_bd(name):
+    if not contacts_book.has_name(name):
+        raise KeyError
+
+    days_to_birthday = contacts_book[name].days_to_birthday()
+
+    return f"{name} has a birthday in {days_to_birthday} day(s)."
+
+
+@input_error
+def show_all(_=None, item_counts=0):
+    if len(contacts_book) == 0:
+        raise ValueError("Phone book is empty.")
+
+    if item_counts > 0:
+        for k in contacts_book.show_records(item_counts):
+            print("*" * 30)
+            print(k)
+            input("Press any key")
+
+    else:
+        all_users = ""
+        for v in contacts_book.values():
+            all_users += f"{v}\n"
+        return all_users
+
+
+@input_error
+def add_user(name_input, phone_input, birthday_input=None):
     name = Name(name_input)
     phone = Phone(phone_input)
 
-    record = Record(name, phone)
+    if birthday_input:
+        birthday = Birthday(birthday_input)
+        record = Record(name, phone, birthday)
+    else:
+        record = Record(name, phone)
 
     if contacts_book.has_name(record.name.value):
         return f"User {name.value} is already in Contacts."
@@ -127,6 +164,8 @@ COMMANDS = {
     "exit": exit,
     "close": exit,
     "good_bye": exit,
+    "days to bd": days_to_bd,
+    "search": search,
 }
 
 
