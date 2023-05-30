@@ -1,6 +1,13 @@
-from bot_classes import AddressBook, Record, Name, Phone
+from bot_classes import AddressBook, Record, Name, Phone, Birthday
+from pathlib import Path
+
+
+file = Path("contacts.bin")
 
 contacts_book = AddressBook()
+
+if file.exists():
+    contacts_book.load_from_file(file)
 
 
 def input_error(func):
@@ -31,6 +38,7 @@ def hello():
 
 
 def exit():
+    contacts_book.save_to_file(file)
     return "Good bye!"
 
 
@@ -49,7 +57,6 @@ def change_phone(name, phone_old_input, phone_new_input):
 
 @input_error
 def delete_phone(name, phone_input):
-    # name = args[0][2]
     phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
@@ -62,7 +69,6 @@ def delete_phone(name, phone_input):
 
 @input_error
 def add_phone(name, phone_input):
-    # name = args[0][2]
     phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
@@ -75,8 +81,6 @@ def add_phone(name, phone_input):
 
 @input_error
 def show_phones(name):
-    # name = args[0][2]
-
     if not contacts_book.has_name(name):
         raise KeyError
 
@@ -86,30 +90,82 @@ def show_phones(name):
 
 
 @input_error
-def show_all():
-    if len(contacts_book) == 0:
-        raise ValueError("Phone book is empty.")
-
-    all_users = ""
-    for v in contacts_book.values():
-        all_users += f"{v}\n"
-
-    return all_users
+def search_by_name(search_str):
+    results = contacts_book.search_name(search_str)
+    if len(results) > 0:
+        all_results = ""
+        for result in results:
+            all_results += f"{result}\n"
+        return all_results
+    else:
+        raise ValueError("Nothing found.")
 
 
 @input_error
-def add_user(name_input, phone_input):
+def search_by_phone(search_str):
+    results = contacts_book.search_phone(search_str)
+    if len(results) > 0:
+        all_results = ""
+        for result in results:
+            all_results += f"{result}\n"
+        return all_results
+    else:
+        raise ValueError("Nothing found.")
+
+
+@input_error
+def days_to_bd(name):
+    if not contacts_book.has_name(name):
+        raise KeyError
+
+    days_to_birthday = contacts_book[name].days_to_birthday()
+
+    return f"{name} has a birthday in {days_to_birthday} day(s)."
+
+
+@input_error
+def show_all(item_counts=None):
+    if len(contacts_book) == 0:
+        raise ValueError("Phone book is empty.")
+
+    if not item_counts:
+        all_users = ""
+        for v in contacts_book.values():
+            all_users += f"{v}\n"
+        return all_users
+    else:
+        page_num = 1
+        for k in contacts_book.show_records(item_counts):
+            print(f"---------- Page {page_num} ----------")
+            print(k)
+            input("---------- Press any key ----------")
+            page_num += 1
+        return "No more records"
+
+
+@input_error
+def add_user(name_input, phone_input, birthday_input=None):
     name = Name(name_input)
+
+    if contacts_book.has_name(name.value):
+        return f"User {name.value} is already in Contacts."
+
     phone = Phone(phone_input)
 
-    record = Record(name, phone)
-
-    if contacts_book.has_name(record.name.value):
-        return f"User {name.value} is already in Contacts."
+    if birthday_input:
+        birthday = Birthday(birthday_input)
+        record = Record(name, phone, birthday)
+        result = (
+            f"Added user {name.value} with phone {phone.value} "
+            f"and birthday {birthday.value}."
+        )
+    else:
+        record = Record(name, phone)
+        result = f"Added user {name.value} with phone {phone.value}."
 
     contacts_book.add_record(record)
 
-    return f"Added user {name.value} with phone number {phone.phone_number}."
+    return result
 
 
 def no_command():
@@ -127,6 +183,9 @@ COMMANDS = {
     "exit": exit,
     "close": exit,
     "good_bye": exit,
+    "days to bd": days_to_bd,
+    "search by name": search_by_name,
+    "search by phone": search_by_phone,
 }
 
 
