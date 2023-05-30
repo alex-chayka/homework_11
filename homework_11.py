@@ -4,10 +4,10 @@ from pathlib import Path
 
 file = Path("contacts.bin")
 
+contacts_book = AddressBook()
+
 if file.exists():
-    contacts_book = AddressBook.load_from_file(file)
-else:
-    contacts_book = AddressBook()
+    contacts_book.load_from_file(file)
 
 
 def input_error(func):
@@ -57,7 +57,6 @@ def change_phone(name, phone_old_input, phone_new_input):
 
 @input_error
 def delete_phone(name, phone_input):
-    # name = args[0][2]
     phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
@@ -70,7 +69,6 @@ def delete_phone(name, phone_input):
 
 @input_error
 def add_phone(name, phone_input):
-    # name = args[0][2]
     phone = Phone(phone_input)
 
     if not contacts_book.has_name(name):
@@ -83,8 +81,6 @@ def add_phone(name, phone_input):
 
 @input_error
 def show_phones(name):
-    # name = args[0][2]
-
     if not contacts_book.has_name(name):
         raise KeyError
 
@@ -113,11 +109,11 @@ def days_to_bd(name):
 
 
 @input_error
-def show_all(_=None, item_counts=0):
+def show_all(item_counts=None):
     if len(contacts_book) == 0:
         raise ValueError("Phone book is empty.")
 
-    if item_counts > 0:
+    if item_counts > 1:
         for k in contacts_book.show_records(item_counts):
             print("*" * 30)
             print(k)
@@ -133,20 +129,26 @@ def show_all(_=None, item_counts=0):
 @input_error
 def add_user(name_input, phone_input, birthday_input=None):
     name = Name(name_input)
+
+    if contacts_book.has_name(name.value):
+        return f"User {name.value} is already in Contacts."
+
     phone = Phone(phone_input)
 
     if birthday_input:
         birthday = Birthday(birthday_input)
         record = Record(name, phone, birthday)
+        result = (
+            f"Added user {name.value} with phone {phone.value}"
+            f"and birthday {birthday.value}."
+        )
     else:
         record = Record(name, phone)
-
-    if contacts_book.has_name(record.name.value):
-        return f"User {name.value} is already in Contacts."
+        result = f"Added user {name.value} with phone {phone.value}."
 
     contacts_book.add_record(record)
 
-    return f"Added user {name.value} with phone number {phone.phone_number}."
+    return result
 
 
 def no_command():

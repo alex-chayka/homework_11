@@ -1,5 +1,4 @@
 from collections import UserDict
-from pathlib import Path
 from datetime import datetime
 import re
 import pickle
@@ -36,10 +35,13 @@ class AddressBook(UserDict):
         with open(file, "wb") as f:
             pickle.dump(self.data, f)
 
-    @staticmethod
-    def load_from_file(file):
+    # @staticmethod
+    # def load_from_file(file):
+    #     with open(file, "rb") as f:
+    #         return pickle.load(f)
+    def load_from_file(self, file):
         with open(file, "rb") as f:
-            return pickle.load(f)
+            self.data = pickle.load(f)
 
     def show_record(self, rec_id):
         return f"{self.data[rec_id]}\n"
@@ -71,16 +73,24 @@ class Field:
         self.__value = value
 
     def __str__(self) -> str:
-        return self.value
+        return self.__value
 
-    def __eq__(self, other):
-        return self.value == other.value
+
+#    def __eq__(self, other):
+#       return self.value == other.value
 
 
 class Birthday(Field):
+    def __init__(self, value):
+        super().__init__(value)
+        self.value = value
+
     @Field.value.setter
     def value(self, value):
-        self.__value = datetime.strptime(value, "%d%m%Y").date()
+        try:
+            self.__value = datetime.strptime(value, "%d-%m-%Y").date()
+        except ValueError:
+            raise ValueError("Date should be in format dd-mm-YYYY")
 
 
 class Name(Field):
@@ -92,22 +102,21 @@ class Name(Field):
 class Phone(Field):
     def __init__(self, value):
         super().__init__(value)
-        self.phone_number = ""
+        self.value = value
 
-        @Field.value.setter
-        def value(self, value):
-            if not re.match(r"^\+38\d{10}$", value):
-                raise ValueError("Phone number should be +380XXXXXXXXX.")
-
-        self.phone_number = value
+    @Field.value.setter
+    def value(self, value):
+        if not re.match(r"\+38\d{10}", value):
+            raise ValueError("Phone number should be +380XXXXXXXXX.")
+        self.__value = value
 
     def __str__(self) -> str:
-        return self.phone_number
+        return self.__value
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
-            return self.phone_number == other.phone_number
-        return self.phone_number == other
+            return self.__value == other.__value
+        return self.__value == other
 
 
 class Record:
@@ -147,7 +156,7 @@ class Record:
             raise ValueError("There is no such phone number.")
 
     def show_phones(self):
-        return "; ".join(phone.phone_number for phone in self.phones)
+        return "; ".join(phone.value for phone in self.phones)
 
     def days_to_birthday(self):
         if not self.birthday:
