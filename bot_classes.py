@@ -1,5 +1,5 @@
 from collections import UserDict
-from datetime import datetime
+from datetime import datetime, date
 import re
 import pickle
 
@@ -24,35 +24,30 @@ class AddressBook(UserDict):
 
         return result
 
-    def search(self, search_str):
+    def search_phone(self, search_str):
         result = []
-        for key, record in self.data.items():
-            if search_str in record:
-                result.append(record)
+        for record in self.data.values():
+            for phone in record.phones:
+                if phone.value.startswith(search_str):
+                    result.append(record)
+                    break
         return result
 
     def save_to_file(self, file):
         with open(file, "wb") as f:
             pickle.dump(self.data, f)
 
-    # @staticmethod
-    # def load_from_file(file):
-    #     with open(file, "rb") as f:
-    #         return pickle.load(f)
     def load_from_file(self, file):
         with open(file, "rb") as f:
             self.data = pickle.load(f)
-
-    def show_record(self, rec_id):
-        return f"{self.data[rec_id]}\n"
 
     def show_records(self, size: int):
         counter = 0
         result = ""
         for record in self.data.values():
-            result += str(record)
+            result += f"{record}\n"
             counter += 1
-            if counter == size:
+            if counter == int(size):
                 yield result
                 counter = 0
                 result = ""
@@ -73,7 +68,7 @@ class Field:
         self.__value = value
 
     def __str__(self) -> str:
-        return self.__value
+        return f"{self.__value}"
 
 
 #    def __eq__(self, other):
@@ -82,41 +77,42 @@ class Field:
 
 class Birthday(Field):
     def __init__(self, value):
-        super().__init__(value)
+        # super().__init__(value)
         self.value = value
 
     @Field.value.setter
     def value(self, value):
         try:
-            self.__value = datetime.strptime(value, "%d-%m-%Y").date()
+            # self.__value = datetime.strptime(value, "%d-%m-%Y").date()
+            Field.value.fset(self, datetime.strptime(value, "%d-%m-%Y").date())
         except ValueError:
             raise ValueError("Date should be in format dd-mm-YYYY")
 
 
 class Name(Field):
     def __init__(self, value):
-        super().__init__(value)
+        # super().__init__(value)
         self.value = value
 
 
 class Phone(Field):
     def __init__(self, value):
-        super().__init__(value)
+        # super().__init__(value)
         self.value = value
 
     @Field.value.setter
     def value(self, value):
         if not re.match(r"\+38\d{10}", value):
             raise ValueError("Phone number should be +380XXXXXXXXX.")
-        self.__value = value
+        Field.value.fset(self, value)
 
-    def __str__(self) -> str:
-        return self.__value
+    #   def __str__(self) -> str:
+    #        return self.__value
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
-            return self.__value == other.__value
-        return self.__value == other
+            return self.value == other.value
+        return self.value == other
 
 
 class Record:
@@ -161,7 +157,8 @@ class Record:
     def days_to_birthday(self):
         if not self.birthday:
             raise ValueError("No birthday")
-        now = datetime.now()
+        now = date.today()
         if (days_to_bd := (self.birthday.value.replace(year=now.year) - now).days) > 0:
             return days_to_bd
-        return (self.birthday.value.replace(year=now.year + 1) - now).days
+        else:
+            return (self.birthday.value.replace(year=now.year + 1) - now).days

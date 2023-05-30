@@ -90,10 +90,25 @@ def show_phones(name):
 
 
 @input_error
-def search(search_str):
-    results = contacts_book.search(search_str)
+def search_by_name(search_str):
+    results = contacts_book.search_name(search_str)
     if len(results) > 0:
-        return f"Results: {results}\n"
+        all_results = ""
+        for result in results:
+            all_results += f"{result}\n"
+        return all_results
+    else:
+        raise ValueError("Nothing found.")
+
+
+@input_error
+def search_by_phone(search_str):
+    results = contacts_book.search_phone(search_str)
+    if len(results) > 0:
+        all_results = ""
+        for result in results:
+            all_results += f"{result}\n"
+        return all_results
     else:
         raise ValueError("Nothing found.")
 
@@ -113,17 +128,19 @@ def show_all(item_counts=None):
     if len(contacts_book) == 0:
         raise ValueError("Phone book is empty.")
 
-    if item_counts > 1:
-        for k in contacts_book.show_records(item_counts):
-            print("*" * 30)
-            print(k)
-            input("Press any key")
-
-    else:
+    if not item_counts:
         all_users = ""
         for v in contacts_book.values():
             all_users += f"{v}\n"
         return all_users
+    else:
+        page_num = 1
+        for k in contacts_book.show_records(item_counts):
+            print(f"---------- Page {page_num} ----------")
+            print(k)
+            input("---------- Press any key ----------")
+            page_num += 1
+        return "No more records"
 
 
 @input_error
@@ -139,7 +156,7 @@ def add_user(name_input, phone_input, birthday_input=None):
         birthday = Birthday(birthday_input)
         record = Record(name, phone, birthday)
         result = (
-            f"Added user {name.value} with phone {phone.value}"
+            f"Added user {name.value} with phone {phone.value} "
             f"and birthday {birthday.value}."
         )
     else:
@@ -167,7 +184,8 @@ COMMANDS = {
     "close": exit,
     "good_bye": exit,
     "days to bd": days_to_bd,
-    "search": search,
+    "search by name": search_by_name,
+    "search by phone": search_by_phone,
 }
 
 
